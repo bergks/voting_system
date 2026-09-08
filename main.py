@@ -3,7 +3,7 @@ from datetime import date
 poll_title = "Выбор темы для корпоратива"
 author = "Иван Петров"
 created_date = date(2026, 9, 15)
-is_active = False
+is_active = True
 
 choices = ["Караоке", "Боулинг", "Квест-комната", "Ресторан"]
 
