@@ -1,0 +1,13 @@
+{
+  "1": {
+    "id": 1,
+    "author_id": 1,
+    "question": "do you like python?",
+    "choices": {
+      "1": "yess",
+      "2": "nooo"
+    },
+    "created_at": "2026-09-22T17:42:03.965275",
+    "is_active": true
+  }
+}

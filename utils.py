@@ -1,6 +1,3 @@
-from datetime import datetime
-
-
 def input_int(prompt: str) -> int:
     """
     Запросить у пользователя целое число.

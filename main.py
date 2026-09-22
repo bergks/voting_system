@@ -1,20 +1,147 @@
-# Объявите функцию check_winners с параметрами scores и student_score.
-# Функция должна напечатать результат в заданном формате.
-def check_winners(scores, student_score):
-    sorted_list = scores.sort(reverse=True)
-    top_scores = sorted_list[:3]
-    if student_score in top_scores:
-        print('Вы в тройке победителей!')
-    else:
-        print('Вы не попали в тройку победителей.')
+# main.py
+from models import create_user, create_poll, get_poll_results, cast_vote
+from storage import load_users, load_polls, load_votes, save_data
+from utils import input_int, input_string
 
-# Вызовы для проверки работы функции check_winners().
-# Три набора данных - для проверки разных ситуаций.
-first_olympiad_scores = [20, 48, 52, 38, 36, 13, 7, 41, 34, 24, 5, 51, 9, 14, 28, 42, 40, 39, 1, 45, 37, 10, 31, 27, 17, 46, 2, 22, 35, 55]
-check_winners(first_olympiad_scores, 52)
+USERS_FILE = "data/users.json"
+POLLS_FILE = "data/polls.json"
+VOTES_FILE = "data/votes.json"
 
-second_olympiad_scores = [22, 4, 42, 5, 54, 28, 19, 33, 8, 16, 23, 40, 39, 58, 9, 13, 48, 2, 51, 41, 21, 36, 55, 25, 31, 45, 44, 30, 1, 10]
-check_winners(second_olympiad_scores, 4)
 
-third_olympiad_scores = [36, 1, 49, 27, 8, 23, 13, 56, 46, 33, 45, 30, 16, 11, 41, 19, 43, 54, 39, 38, 40, 48, 34, 26, 5, 28, 21, 3, 51, 44]
-check_winners(third_olympiad_scores, 21)
+def show_polls(polls):
+    """Показать список всех голосований."""
+    if not polls:
+        print("Голосований пока нет.")
+        return
+
+    print("\n--- Список голосований ---")
+    for poll_id in polls:
+        poll = polls[poll_id]
+        if poll["is_active"]:
+            status = "активно"
+        else:
+            status = "завершено"
+        print(f"[{poll_id}] {poll['question']} ({status})")
+
+
+def show_results(polls, votes):
+    """Показать результаты выбранного голосования."""
+    poll_id = input_int("Введите ID голосования: ")
+    results = get_poll_results(polls, votes, poll_id)
+
+    if results is None:
+        print("Голосование не найдено.")
+        return
+
+    print(f"\n--- Результаты голосования #{poll_id} ---")
+    for choice in results:
+        print(f"{choice}: {results[choice]} голосов")
+
+
+def main():
+    """Главная функция — меню программы."""
+    users = load_users(USERS_FILE)
+    polls = load_polls(POLLS_FILE)
+    votes = load_votes(VOTES_FILE)
+
+    current_user_id = None
+
+    while True:
+        print("\n=== Система Голосования ===")
+        if current_user_id is not None:
+            print(f"Вы вошли как: {users[current_user_id]['username']}")
+        else:
+            print("Вы не авторизованы.")
+        print("1. Войти")
+        print("2. Создать голосование")
+        print("3. Проголосовать")
+        print("4. Показать результаты")
+        print("5. Показать все голосования")
+        print("0. Выход")
+
+        choice = input_int("Выберите действие: ")
+
+        if choice == 1:
+            username = input_string("Введите имя пользователя: ")
+
+            # Ищем пользователя с таким именем
+            found_id = None
+            for uid in users:
+                if users[uid]["username"] == username:
+                    found_id = uid
+                    break
+
+            if found_id is None:
+                current_user_id = create_user(users, username)
+                save_data(USERS_FILE, users)
+                print(f"Создан новый пользователь: {username}")
+            else:
+                current_user_id = found_id
+                print(f"С возвращением, {username}!")
+
+        elif choice == 2:
+            if current_user_id is None:
+                print("Сначала войдите в систему.")
+                continue
+
+            question = input_string("Введите вопрос голосования: ")
+            choices = []
+
+            while True:
+                text = input_string("Вариант ответа (пусто — закончить): ")
+                if text == "":
+                    break
+                choices.append(text)
+
+            if len(choices) < 2:
+                print("Нужно минимум два варианта.")
+                continue
+
+            poll_id = create_poll(polls, current_user_id, question, choices)
+            save_data(POLLS_FILE, polls)
+            print(f"Голосование создано! ID: {poll_id}")
+
+        elif choice == 3:
+            if current_user_id is None:
+                print("Сначала войдите в систему.")
+                continue
+
+            show_polls(polls)
+
+            if not polls:
+                continue
+
+            poll_id = input_int("Введите ID голосования: ")
+
+            if poll_id not in polls:
+                print("Голосование не найдено.")
+                continue
+
+            poll = polls[poll_id]
+            print("Варианты ответа:")
+            for cid in poll["choices"]:
+                print(f"{cid}. {poll['choices'][cid]}")
+
+            choice_id = input_int("Введите номер варианта: ")
+
+            if cast_vote(votes, polls, current_user_id, poll_id, choice_id):
+                save_data(VOTES_FILE, votes)
+                print("Голос принят!")
+            else:
+                print("Не удалось проголосовать (уже голосовали или неверный вариант).")
+
+        elif choice == 4:
+            show_results(polls, votes)
+
+        elif choice == 5:
+            show_polls(polls)
+
+        elif choice == 0:
+            print("Выход.")
+            break
+        else:
+            print("Неверный выбор.")
+
+
+if __name__ == "__main__":
+    main()
