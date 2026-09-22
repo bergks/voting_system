@@ -1,27 +1,20 @@
-from datetime import date
-
-poll_title = "Выбор темы для корпоратива"
-author = "Иван Петров"
-created_date = date(2026, 9, 15)
-is_active = True
-
-choices = ["Караоке", "Боулинг", "Квест-комната", "Ресторан"]
-
-def get_poll_status(is_active):
-    if is_active:
-        return "Голосование активно"
-    return "Голосование завершено"
-
-def get_options(choices):
-    if len(choices) == 0:
-        print('У этого опроса нет вариантов ответа')
+# Объявите функцию check_winners с параметрами scores и student_score.
+# Функция должна напечатать результат в заданном формате.
+def check_winners(scores, student_score):
+    sorted_list = scores.sort(reverse=True)
+    top_scores = sorted_list[:3]
+    if student_score in top_scores:
+        print('Вы в тройке победителей!')
     else:
-        for i in range(len(choices)):
-            print(i+1, '.', choices[i])
+        print('Вы не попали в тройку победителей.')
 
-print(f"Голосование: {poll_title}")
-print(f"Автор: {author}")
-print(f"Дата создания: {created_date}")
-print(f"Варианты ответов: {', '.join(choices)}")
-print(get_poll_status(is_active))
-get_options(choices)
+# Вызовы для проверки работы функции check_winners().
+# Три набора данных - для проверки разных ситуаций.
+first_olympiad_scores = [20, 48, 52, 38, 36, 13, 7, 41, 34, 24, 5, 51, 9, 14, 28, 42, 40, 39, 1, 45, 37, 10, 31, 27, 17, 46, 2, 22, 35, 55]
+check_winners(first_olympiad_scores, 52)
+
+second_olympiad_scores = [22, 4, 42, 5, 54, 28, 19, 33, 8, 16, 23, 40, 39, 58, 9, 13, 48, 2, 51, 41, 21, 36, 55, 25, 31, 45, 44, 30, 1, 10]
+check_winners(second_olympiad_scores, 4)
+
+third_olympiad_scores = [36, 1, 49, 27, 8, 23, 13, 56, 46, 33, 45, 30, 16, 11, 41, 19, 43, 54, 39, 38, 40, 48, 34, 26, 5, 28, 21, 3, 51, 44]
+check_winners(third_olympiad_scores, 21)
